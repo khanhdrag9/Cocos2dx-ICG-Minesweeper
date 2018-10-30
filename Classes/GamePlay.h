@@ -23,17 +23,22 @@ class GamePlay : public cocos2d::Layer
 {
 	int _level;
 	int _numberMine;
+	int _numberSafeGrids;
 
 	cocos2d::Size _screenSize;
 	cocos2d::Sprite* _bg;
 	cocos2d::Sprite* _gridClicked;
-	Grid* _gridClicking;
+	int _gridClicking;
 
 	std::vector<Grid> _grids;
 
 	void createGrid();
 	void createAnimation();
 	void createMine();
+	void checkGrid();
+
+	void winGame();
+	void loseGame();
 
 public:
 	GamePlay();

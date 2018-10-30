@@ -3,7 +3,8 @@
 
 USING_NS_CC;
 GamePlay::GamePlay():
-	_level(NORMAL)
+	_level(NORMAL),
+	_gridClicking(-1)
 {
 	
 }
@@ -89,7 +90,8 @@ void GamePlay::createAnimation()
 
 void GamePlay::createMine()
 {
-	_numberMine = _level * _level * 0.25f;
+	_numberMine = _level * _level * 0.2f;
+	_numberSafeGrids = _grids.size() - _numberMine;
 	for (int i = 0; i < _numberMine; ++i)
 	{
 		int r = rand() % _grids.size();
@@ -108,19 +110,53 @@ void GamePlay::createMine()
 #endif
 }
 
+void GamePlay::checkGrid()
+{
+	if (_grids[_gridClicking]._isMine)
+	{
+		loseGame();
+	}
+	else if(_numberSafeGrids <= 0)
+	{
+		winGame();
+	}
+	else
+	{
+		//code logic
+
+	}
+}
+
+void GamePlay::winGame()
+{
+	CCLOG("Win game");
+}
+
+void GamePlay::loseGame()
+{
+	CCLOG("Lose game");
+}
+
 void GamePlay::onToucMoved(cocos2d::Touch* touch, cocos2d::Event* event)
 {
-	for (auto x : _grids)
+	for (int i = 0; i < _grids.size(); i++)
 	{
-		if (x.CheckContainPoint(touch->getLocation()))
+		if (_grids[i].CheckContainPoint(touch->getLocation()))
 		{
+			_gridClicking = i;
 			_gridClicked->setVisible(true);
-			_gridClicked->setPosition(x._point + _gridClicked->getContentSize() * 0.5);
+			_gridClicked->setPosition(_grids[i]._point + _gridClicked->getContentSize() * 0.5);
+			return;
 		}
 	}
+	_gridClicking = -1;
 }
 
 void GamePlay::onTouchRelease(cocos2d::Touch* touch, cocos2d::Event* event)
 {
 	_gridClicked->setVisible(false);
+	if (_gridClicking != -1)
+	{
+		checkGrid();
+	}
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 //Gameplay
-#define TEST_GRID 0
+#define TEST_GRID 1
 
 #define BACKGROUND "gridsBoard.jpg"
 #define GRID_SIZE 64

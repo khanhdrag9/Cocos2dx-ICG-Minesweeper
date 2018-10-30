@@ -1,4 +1,5 @@
 #include "GamePlay.h"
+#include <time.h>
 
 USING_NS_CC;
 GamePlay::GamePlay():
@@ -26,11 +27,13 @@ bool GamePlay::init()
 {
 	if (!Layer::init())
 		return false;
+	srand(time(NULL));
 
 	_screenSize = Director::getInstance()->getVisibleSize();
 
 	createGrid();
 	createAnimation();
+	createMine();
 
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->onTouchBegan = [](Touch*, Event*) {return true; };
@@ -82,6 +85,27 @@ void GamePlay::createAnimation()
 	_gridClicked->setVisible(false);
 	_gridClicked->retain();
 	this->addChild(_gridClicked);
+}
+
+void GamePlay::createMine()
+{
+	_numberMine = _level * _level * 0.25f;
+	for (int i = 0; i < _numberMine; ++i)
+	{
+		int r = rand() % _grids.size();
+		if (_grids[r]._isMine)i--;
+		else _grids[r]._isMine = true;
+	}
+
+#if TEST_GRID
+	auto rect = DrawNode::create();
+	for(auto x : _grids)
+		if (x._isMine)
+		{	
+			rect->drawCircle(x._point + Vec2(GRID_SIZE*0.5, GRID_SIZE*0.5), GRID_SIZE * 0.5f, 360, 360, false, Color4F::RED);
+		}
+	this->addChild(rect);
+#endif
 }
 
 void GamePlay::onToucMoved(cocos2d::Touch* touch, cocos2d::Event* event)

@@ -22,6 +22,7 @@ typedef struct Grid {
 class GamePlay : public cocos2d::Layer
 {
 	int _level;
+	int _numberMine;
 
 	cocos2d::Size _screenSize;
 	cocos2d::Sprite* _bg;
@@ -32,6 +33,7 @@ class GamePlay : public cocos2d::Layer
 
 	void createGrid();
 	void createAnimation();
+	void createMine();
 
 public:
 	GamePlay();

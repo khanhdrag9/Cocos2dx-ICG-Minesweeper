@@ -36,6 +36,8 @@ class GamePlay : public cocos2d::Layer
 	void createAnimation();
 	void createMine();
 	void checkGrid();
+	void scanPositionClick(int index);
+	bool isHaveMineNearly(int index);
 
 	void winGame();
 	void loseGame();
@@ -50,6 +52,7 @@ public:
 
 	CREATE_FUNC(GamePlay);
 
-	void onToucMoved(cocos2d::Touch* touch, cocos2d::Event* event);
+	bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
+	void onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event);
 	void onTouchRelease(cocos2d::Touch* touch, cocos2d::Event* event);
 };

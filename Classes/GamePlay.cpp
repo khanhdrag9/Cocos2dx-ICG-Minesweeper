@@ -37,8 +37,8 @@ bool GamePlay::init()
 	createMine();
 
 	auto listener = EventListenerTouchOneByOne::create();
-	listener->onTouchBegan = [](Touch*, Event*) {return true; };
-	listener->onTouchMoved = CC_CALLBACK_2(GamePlay::onToucMoved, this);
+	listener->onTouchBegan = CC_CALLBACK_2(GamePlay::onTouchBegan, this);
+	listener->onTouchMoved = CC_CALLBACK_2(GamePlay::onTouchMoved, this);
 	listener->onTouchEnded = CC_CALLBACK_2(GamePlay::onTouchRelease, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
@@ -47,6 +47,8 @@ bool GamePlay::init()
 
 void GamePlay::createGrid()
 {
+	SpriteFrameCache::getInstance()->addSpriteFramesWithFile(SPRITE_PLIST);
+
 	_bg = Sprite::create(BACKGROUND, Rect(0, 0, _level * GRID_SIZE, _level * GRID_SIZE));
 	_bg->setPosition(_screenSize * 0.5f);
 	this->addChild(_bg);
@@ -70,7 +72,7 @@ void GamePlay::createGrid()
 #if TEST_GRID
 	for (auto x : _grids)
 	{
-		Sprite* p = Sprite::create("grid.png");
+		Sprite* p = Sprite::createWithSpriteFrameName("grid.png");
 		p->setContentSize(Size(GRID_SIZE, GRID_SIZE));
 		p->setPosition(x._point + p->getContentSize() * 0.5);
 		p->setOpacity(90);
@@ -81,7 +83,7 @@ void GamePlay::createGrid()
 
 void GamePlay::createAnimation()
 {
-	_gridClicked = Sprite::create("grid.png");
+	_gridClicked = Sprite::createWithSpriteFrameName("grid.png");
 	_gridClicked->setContentSize(Size(GRID_SIZE, GRID_SIZE));
 	_gridClicked->setVisible(false);
 	_gridClicked->retain();
@@ -123,8 +125,62 @@ void GamePlay::checkGrid()
 	else
 	{
 		//code logic
-
+		scanPositionClick(_gridClicking);
 	}
+}
+void GamePlay::scanPositionClick(int index)
+{
+	int numberMineAround = 0;
+
+	std::vector<int> aroundGrid;
+	int caseAroundGrid[8] = {
+		index - _level - 1, index - _level, index - _level + 1,
+		index - 1, index + 1,
+		index + _level - 1, index + _level, index + _level + 1
+	};
+
+	for (int i = 0; i < 8; i++)
+	{
+		auto grid = caseAroundGrid[i];
+		if (grid < 0)
+			continue;
+		if (grid >= _grids.size())
+			continue;
+
+		Vec2 subX = _grids[grid]._point - _grids[index]._point;
+		subX.x *= (subX.x < 0 ? -1 : 1);
+		subX.y *= (subX.y < 0 ? -1 : 1);
+		if (subX.x > GRID_SIZE || subX.y > GRID_SIZE)
+			continue;
+
+		//calculate
+		if (_grids[grid]._isMine)numberMineAround++;
+		else aroundGrid.push_back(grid);
+	}
+
+	if (numberMineAround == 0)
+	{
+		_grids[index]._wasShow = true;
+
+		Sprite* s = Sprite::createWithSpriteFrameName(GRID_SHOWN);
+		s->setPosition(_grids[index]._point + Size(GRID_SIZE, GRID_SIZE) * 0.5);
+		this->addChild(s);
+
+		for (int i = 0; i < aroundGrid.size(); i++)
+		{
+			scanPositionClick(aroundGrid[i]);
+		}
+	}
+	else //draw label
+	{
+		CCLOG("NUMBER");
+		char num[2];
+		sprintf(num, "%d", numberMineAround);
+		Label* number = Label::createWithTTF(num, FONT_PATH, GRID_SIZE * 0.65);
+		number->setPosition(_grids[index]._point + Size(GRID_SIZE, GRID_SIZE) * 0.5);
+		this->addChild(number);
+	}
+
 }
 
 void GamePlay::winGame()
@@ -137,10 +193,17 @@ void GamePlay::loseGame()
 	CCLOG("Lose game");
 }
 
-void GamePlay::onToucMoved(cocos2d::Touch* touch, cocos2d::Event* event)
+bool GamePlay::onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event)
+{
+	onTouchMoved(touch, event);
+	return true;
+}
+
+void GamePlay::onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event)
 {
 	for (int i = 0; i < _grids.size(); i++)
 	{
+		if(!_grids[i]._wasShow)
 		if (_grids[i].CheckContainPoint(touch->getLocation()))
 		{
 			_gridClicking = i;

@@ -7,6 +7,7 @@ typedef struct Grid {
 	cocos2d::Point _point;
 	bool _isMine = false;
 	bool _wasShow = false;
+	bool _wasChecked = false;
 	Grid(int xx, int yy) {
 		_point = cocos2d::Vec2(xx, yy);
 	}
@@ -32,15 +33,21 @@ class GamePlay : public cocos2d::Layer
 
 	std::vector<Grid> _grids;
 
+	cocos2d::Label* _winLabel;
+	cocos2d::Label* _loseLabel;
+	cocos2d::Label* _resetGame;
+	bool _isEndGame;
+
 	void createGrid();
 	void createAnimation();
 	void createMine();
 	void checkGrid();
 	void scanPositionClick(int index);
-	bool isHaveMineNearly(int index);
+	void showAllGrid();
 
 	void winGame();
 	void loseGame();
+	void resetGame();
 
 public:
 	GamePlay();

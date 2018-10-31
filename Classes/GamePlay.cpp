@@ -4,7 +4,10 @@
 USING_NS_CC;
 GamePlay::GamePlay():
 	_level(NORMAL),
-	_gridClicking(-1)
+	_gridClicking(-1),
+	_winLabel(nullptr),
+	_loseLabel(nullptr),
+	_isEndGame(false)
 {
 	
 }
@@ -13,6 +16,10 @@ GamePlay::~GamePlay()
 {
 	CC_SAFE_DELETE(_gridClicked);
 	CC_SAFE_DELETE(_bg);
+	CC_SAFE_DELETE(_winLabel);
+	CC_SAFE_DELETE(_loseLabel);
+	CC_SAFE_DELETE(_resetGame);
+	//SpriteFrameCache::getInstance()->destroyInstance();
 }
 
 Scene* GamePlay::createScene()
@@ -35,6 +42,12 @@ bool GamePlay::init()
 	createGrid();
 	createAnimation();
 	createMine();
+
+	_resetGame = Label::createWithTTF(RESET_LABEL, FONT_PATH, GRID_SIZE);
+	_resetGame->setPosition(_screenSize.width * 0.5f, _screenSize.height * 0.4);
+	_resetGame->setColor(Color3B::YELLOW);
+	_resetGame->setVisible(false);
+	this->addChild(_resetGame, 3);
 
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->onTouchBegan = CC_CALLBACK_2(GamePlay::onTouchBegan, this);
@@ -92,7 +105,7 @@ void GamePlay::createAnimation()
 
 void GamePlay::createMine()
 {
-	_numberMine = _level * _level * 0.2f;
+	_numberMine = _level * _level * RATIO_MINE_WITH_NUMBER_GRIDS;
 	_numberSafeGrids = _grids.size() - _numberMine;
 	for (int i = 0; i < _numberMine; ++i)
 	{
@@ -114,8 +127,13 @@ void GamePlay::createMine()
 
 void GamePlay::checkGrid()
 {
+
 	if (_grids[_gridClicking]._isMine)
 	{
+		Sprite* mine = Sprite::createWithSpriteFrameName(GIRD_MINE);
+		mine->setPosition(_grids[_gridClicking]._point + Vec2(GRID_SIZE, GRID_SIZE) * 0.5f);
+		this->addChild(mine);
+
 		loseGame();
 	}
 	else if(_numberSafeGrids <= 0)
@@ -126,10 +144,14 @@ void GamePlay::checkGrid()
 	{
 		//code logic
 		scanPositionClick(_gridClicking);
+		
 	}
 }
 void GamePlay::scanPositionClick(int index)
 {
+	if (_grids[index]._wasShow || _grids[index]._wasChecked)
+		return;
+
 	int numberMineAround = 0;
 
 	std::vector<int> aroundGrid;
@@ -158,10 +180,11 @@ void GamePlay::scanPositionClick(int index)
 		else aroundGrid.push_back(grid);
 	}
 
+	_grids[index]._wasShow = true;
+	_grids[index]._wasChecked = true;
+
 	if (numberMineAround == 0)
 	{
-		_grids[index]._wasShow = true;
-
 		Sprite* s = Sprite::createWithSpriteFrameName(GRID_SHOWN);
 		s->setPosition(_grids[index]._point + Size(GRID_SIZE, GRID_SIZE) * 0.5);
 		this->addChild(s);
@@ -183,14 +206,61 @@ void GamePlay::scanPositionClick(int index)
 
 }
 
+void GamePlay::showAllGrid()
+{
+	_isEndGame = true;
+	for (auto x : _grids)
+	{
+		if (!x._wasShow)
+		{
+			if (x._isMine)
+			{
+				Sprite* gridShown;
+				gridShown = Sprite::createWithSpriteFrameName(GIRD_MINE);		
+				gridShown->setPosition(x._point + Vec2(GRID_SIZE, GRID_SIZE) * 0.5f);
+				this->addChild(gridShown);
+			}	
+		}
+		x._wasShow = true;
+		x._wasChecked = true;
+	}
+}
+
 void GamePlay::winGame()
 {
 	CCLOG("Win game");
+	showAllGrid();
+	
+	if (_winLabel == nullptr)
+	{
+		_winLabel = Label::createWithTTF(WIN_LABEL, FONT_PATH, GRID_SIZE * 3);
+		_winLabel->setPosition(_screenSize.width * 0.5f, _screenSize.height * 0.7);
+		_winLabel->setColor(Color3B::RED);
+		this->addChild(_winLabel, 3);
+	}
+	_resetGame->setVisible(true);
 }
 
 void GamePlay::loseGame()
 {
 	CCLOG("Lose game");
+	showAllGrid();
+
+	if (_loseLabel == nullptr)
+	{
+		_loseLabel = Label::createWithTTF(LOSE_LABEL, FONT_PATH, GRID_SIZE * 3);
+		_loseLabel->setPosition(_screenSize.width * 0.5f, _screenSize.height * 0.7);
+		_loseLabel->setColor(Color3B::GREEN);
+		this->addChild(_loseLabel, 3);
+	}
+	_resetGame->setVisible(true);
+}
+
+void GamePlay::resetGame()
+{
+	CCLOG("Lose game");
+	auto scene = GamePlay::createScene();
+	Director::getInstance()->replaceScene(TransitionFade::create(1.0, scene));
 }
 
 bool GamePlay::onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event)
@@ -201,6 +271,7 @@ bool GamePlay::onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event)
 
 void GamePlay::onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event)
 {
+	if (_isEndGame)return;
 	for (int i = 0; i < _grids.size(); i++)
 	{
 		if(!_grids[i]._wasShow)
@@ -217,9 +288,16 @@ void GamePlay::onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event)
 
 void GamePlay::onTouchRelease(cocos2d::Touch* touch, cocos2d::Event* event)
 {
-	_gridClicked->setVisible(false);
-	if (_gridClicking != -1)
+	if (_isEndGame)
 	{
-		checkGrid();
+		resetGame();
+	}
+	else
+	{
+		_gridClicked->setVisible(false);
+		if (_gridClicking != -1)
+		{
+			checkGrid();
+		}
 	}
 }

@@ -9,8 +9,15 @@
 #define GRID_SHOWN "gridShown.png"
 #define GIRD_MINE "mine.png"
 #define GRID_SIZE 64
+#define RATIO_MINE_WITH_NUMBER_GRIDS 0.15F
 
 #define FONT_PATH "fonts/arial.ttf"
+
+//Result game
+#define WIN_LABEL "WIN :D"
+#define LOSE_LABEL "LOSE :("
+#define RESET_LABEL "Touch on screen to play again"
+
 typedef enum Levels
 {
 	EASY = 4,

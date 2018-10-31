@@ -1,5 +1,9 @@
 #pragma once
 
+//GameStart
+#define TITLE "Minesweeper by T.N.Khanh"
+#define PLAY_LABEL "Touch on screen to play!"
+
 //Gameplay
 #define TEST_GRID 1
 

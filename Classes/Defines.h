@@ -1,11 +1,11 @@
 #pragma once
 
 //GameStart
-#define TITLE "Minesweeper by T.N.Khanh"
+#define TITLE "Minesweeper by TNKhanh"
 #define PLAY_LABEL "Touch on screen to play!"
 
 //Gameplay
-#define TEST_GRID 1
+#define TEST_GRID 0
 
 #define BACKGROUND "gridsBoard.jpg"
 #define SPRITE_PLIST "sprites.plist"

@@ -18,7 +18,7 @@ GamePlay::~GamePlay()
 	CC_SAFE_DELETE(_bg);
 	CC_SAFE_DELETE(_winLabel);
 	CC_SAFE_DELETE(_loseLabel);
-	CC_SAFE_DELETE(_resetGame);
+	//CC_SAFE_DELETE(_resetGame);
 	//SpriteFrameCache::getInstance()->destroyInstance();
 }
 
@@ -43,11 +43,11 @@ bool GamePlay::init()
 	createAnimation();
 	createMine();
 
-	_resetGame = Label::createWithTTF(RESET_LABEL, FONT_PATH, GRID_SIZE);
+	/*_resetGame = Label::createWithTTF(RESET_LABEL, FONT_PATH, GRID_SIZE);
 	_resetGame->setPosition(_screenSize.width * 0.5f, _screenSize.height * 0.4);
 	_resetGame->setColor(Color3B::YELLOW);
 	_resetGame->setVisible(false);
-	this->addChild(_resetGame, 3);
+	this->addChild(_resetGame, 3);*/
 
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->onTouchBegan = CC_CALLBACK_2(GamePlay::onTouchBegan, this);
@@ -134,9 +134,12 @@ void GamePlay::checkGrid()
 		mine->setPosition(_grids[_gridClicking]._point + Vec2(GRID_SIZE, GRID_SIZE) * 0.5f);
 		this->addChild(mine);
 
+		auto lessbig = Sequence::createWithTwoActions(ScaleTo::create(1, 1.5), ScaleTo::create(1, 1));
+		mine->runAction(RepeatForever::create(lessbig)->clone());
+
 		loseGame();
 	}
-	else if(_numberSafeGrids <= 0)
+	else if(_numberSafeGrids <= 1)
 	{
 		winGame();
 	}
@@ -182,6 +185,7 @@ void GamePlay::scanPositionClick(int index)
 
 	_grids[index]._wasShow = true;
 	_grids[index]._wasChecked = true;
+	_numberSafeGrids--;
 
 	if (numberMineAround == 0)
 	{
@@ -209,20 +213,22 @@ void GamePlay::scanPositionClick(int index)
 void GamePlay::showAllGrid()
 {
 	_isEndGame = true;
-	for (auto x : _grids)
+	for (int i = 0; i < _grids.size(); i++)
 	{
-		if (!x._wasShow)
+		if (i == _gridClicking)continue;
+
+		if (!_grids[i]._wasShow)
 		{
-			if (x._isMine)
+			if (_grids[i]._isMine)
 			{
 				Sprite* gridShown;
 				gridShown = Sprite::createWithSpriteFrameName(GIRD_MINE);		
-				gridShown->setPosition(x._point + Vec2(GRID_SIZE, GRID_SIZE) * 0.5f);
+				gridShown->setPosition(_grids[i]._point + Vec2(GRID_SIZE, GRID_SIZE) * 0.5f);
 				this->addChild(gridShown);
 			}	
 		}
-		x._wasShow = true;
-		x._wasChecked = true;
+		_grids[i]._wasShow = true;
+		_grids[i]._wasChecked = true;
 	}
 }
 
@@ -233,12 +239,12 @@ void GamePlay::winGame()
 	
 	if (_winLabel == nullptr)
 	{
-		_winLabel = Label::createWithTTF(WIN_LABEL, FONT_PATH, GRID_SIZE * 3);
-		_winLabel->setPosition(_screenSize.width * 0.5f, _screenSize.height * 0.7);
+		_winLabel = Label::createWithTTF(WIN_LABEL, FONT_PATH, GRID_SIZE);
+		_winLabel->setPosition(_screenSize.width * 0.5f, _screenSize.height - _winLabel->getBoundingBox().size.height * 0.6f);
 		_winLabel->setColor(Color3B::RED);
 		this->addChild(_winLabel, 3);
 	}
-	_resetGame->setVisible(true);
+	//_resetGame->setVisible(true);
 }
 
 void GamePlay::loseGame()
@@ -248,12 +254,12 @@ void GamePlay::loseGame()
 
 	if (_loseLabel == nullptr)
 	{
-		_loseLabel = Label::createWithTTF(LOSE_LABEL, FONT_PATH, GRID_SIZE * 3);
-		_loseLabel->setPosition(_screenSize.width * 0.5f, _screenSize.height * 0.7);
+		_loseLabel = Label::createWithTTF(LOSE_LABEL, FONT_PATH, GRID_SIZE);
+		_loseLabel->setPosition(_screenSize.width * 0.5f, _screenSize.height - _loseLabel->getBoundingBox().size.height * 0.6f);
 		_loseLabel->setColor(Color3B::GREEN);
 		this->addChild(_loseLabel, 3);
 	}
-	_resetGame->setVisible(true);
+	//_resetGame->setVisible(true);
 }
 
 void GamePlay::resetGame()

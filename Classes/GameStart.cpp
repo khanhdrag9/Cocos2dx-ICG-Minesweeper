@@ -34,8 +34,8 @@ bool GameStart::init()
 	this->addChild(title);
 
 	auto play = Label::createWithTTF(PLAY_LABEL, FONT_PATH, GRID_SIZE * 0.7);
-	title->setPosition(screenSize.width * 0.5f, screenSize.height * 0.4f);
-	title->setColor(Color3B::YELLOW);
+	play->setPosition(screenSize.width * 0.5f, screenSize.height * 0.4f);
+	play->setColor(Color3B::YELLOW);
 	this->addChild(play);
 
 	auto listener = EventListenerTouchOneByOne::create();
